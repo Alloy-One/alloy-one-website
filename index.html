@@ -117,22 +117,33 @@
     P.forEach(function(p,i){ p.tx=T2[i][0]; p.ty=T2[i][1]; });
   });
 
-  var FORM = 4200, HOLD = 500, FADE = 900;
-  var start = null, revealed = false, cx, cy;
+  // timeline (ms): loose drifting swirl -> spin winds up and the cloud draws in
+  // -> points whip onto the chevron -> hold -> crossfade to the real mark
+  var RAMP = 2600, GATHER = 4400, FORM = 7000, HOLD = 450, FADE = 900;
+  var start = null, revealed = false, last = 0, yaw = 0, pit = 0, cx = 0, cy = 0;
 
   function ease(t){ return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+  function clamp01(v){ return v<0 ? 0 : v>1 ? 1 : v; }
+  function smooth(t){ t = clamp01(t); return t*t*(3-2*t); }
 
   function frame(now){
-    if (start===null) start = now;
-    var el = now-start;
-    var t = Math.min(1, el/FORM);
-    var yaw = el*0.00045*(1-0.85*t), pit = el*0.00026*(1-0.85*t);
-    var cloud = 1-ease(t);
+    if (start===null){ start = now; last = now; }
+    var el = now-start, dt = Math.min(64, now-last); last = now;
+
+    // how wound-up the swirl is, and how far into forming the logo we are
+    var wind = smooth((el-RAMP)/(GATHER+800-RAMP));
+    var g = clamp01((el-GATHER)/(FORM-GATHER)), eg = ease(g);
+
+    // spin accelerates into the gather, then bleeds off as the shape locks in
+    var spin = 0.00042*(1+3.6*wind)*(1-0.82*eg);
+    yaw += dt*spin; pit += dt*spin*0.6;
+    // the cloud tightens as it winds up, which reads as gathering energy
+    var draw = 1-0.22*wind*(1-eg);
+
     var r = svg.getBoundingClientRect();
     var lx = r.left + r.width/2, ly = r.top + r.height/2;
-    // the cloud hangs in the middle of the screen, then drifts onto the logo as it forms
-    var et = ease(t);
-    cx = W/2 + (lx - W/2)*et; cy = H/2 + (ly - H/2)*et;
+    // the cloud hangs in the middle of the screen, then drifts onto the logo
+    cx = W/2 + (lx - W/2)*eg; cy = H/2 + (ly - H/2)*eg;
 
     ctx.clearRect(0,0,W,H);
 
@@ -141,19 +152,18 @@
 
     for (var i=0;i<N;i++){
       var p = P[i];
-      // rotate the cloud in 3d, project
-      var x=p.x, y=p.y, z=p.z, c, s2, X, Y, Z;
+      var x=p.x*draw, y=p.y*draw, z=p.z*draw, c, s2, X, Y, Z;
       c=Math.cos(yaw); s2=Math.sin(yaw); X = x*c - z*s2; Z = x*s2 + z*c;
       c=Math.cos(pit); s2=Math.sin(pit); Y = y*c - Z*s2; Z = y*s2 + Z*c;
       var f = 620/(620+Z);
       var px = cx + X*f, py = cy + Y*f;
-      // per-particle progress, staggered
-      var e = ease(Math.max(0, Math.min(1, (t-p.d)/(1-p.d))));
+      // per-particle progress, staggered so they arrive organically
+      var e = ease(clamp01((g-p.d)/(1-p.d)));
       pos[i] = [px+(p.tx-px)*e, py+(p.ty-py)*e, f, e];
     }
 
-    // constellation lines, only while the cloud is still loose
-    var la = cloud*0.34*out;
+    // constellation lines, brighter at the peak of the swirl, gone once formed
+    var la = (1-eg)*(0.3+0.32*wind)*out;
     if (la > 0.02){
       ctx.lineWidth = 0.5;
       for (var a=0;a<N;a++){
@@ -170,8 +180,8 @@
 
     for (var m=0;m<N;m++){
       var q = pos[m], pp = P[m];
-      var alpha = pp.a*(0.45+0.55*q[2])*out;
-      ctx.fillStyle = 'rgba(216,182,106,'+alpha.toFixed(3)+')';
+      var alpha = pp.a*(0.45+0.55*q[2])*(1+0.35*wind*(1-eg))*out;
+      ctx.fillStyle = 'rgba(216,182,106,'+Math.min(1,alpha).toFixed(3)+')';
       ctx.beginPath(); ctx.arc(q[0], q[1], pp.s*(0.6+0.5*q[2]), 0, 6.2832); ctx.fill();
     }
 
