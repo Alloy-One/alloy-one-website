@@ -12,27 +12,175 @@
 <style>
   :root{ --bg:#0e1013; --ink:#eef1f5; --muted:#9aa4b2; --accent:#c8a24a; }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    margin:0; background:var(--bg); color:var(--ink);
     font:400 17px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
     display:flex; align-items:center; justify-content:center; padding:2rem;
+    overflow:hidden;
   }
-  main{max-width:32rem; text-align:center}
-  svg{display:block; margin:0 auto 1.75rem}
-  h1{font-size:clamp(2rem,7vw,2.75rem); letter-spacing:-.03em; font-weight:600; margin:0 0 .9rem}
-  p{color:var(--muted); margin:0;
-    font-size:.8rem; letter-spacing:.18em; text-transform:uppercase}
+  #sky{position:fixed; inset:0; width:100%; height:100%; pointer-events:none}
+  main{max-width:32rem; text-align:center; position:relative}
+
+  .logo{display:block; margin:0 auto 2rem; opacity:0}
+  h1{font-size:clamp(2rem,7vw,2.75rem); letter-spacing:-.03em; font-weight:600; margin:0 0 .9rem; opacity:0}
+  p{color:var(--muted); margin:0; font-size:.8rem; letter-spacing:.18em; text-transform:uppercase; opacity:0}
+
+  .reveal .logo,.reveal h1,.reveal p{
+    animation:rise .9s cubic-bezier(.22,.61,.36,1) forwards;
+  }
+  .reveal h1{animation-delay:.18s}
+  .reveal p{animation-delay:.34s}
+  @keyframes rise{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+
+  @media (prefers-reduced-motion:reduce){
+    #sky{display:none}
+    .logo,h1,p{opacity:1 !important; animation:none !important; transform:none !important}
+  }
 </style>
 </head>
 <body>
+  <canvas id="sky" aria-hidden="true"></canvas>
   <main>
-    <svg width="52" height="52" viewBox="0 0 100 100" aria-hidden="true">
+    <svg class="logo" width="120" height="120" viewBox="0 0 100 100" aria-label="Alloy One">
       <rect width="100" height="100" rx="20" fill="#14171c" stroke="#252a32"/>
       <path d="M28 72 50 26 72 72" stroke="#c8a24a" stroke-width="9" fill="none" stroke-linejoin="round"/>
     </svg>
     <h1>Alloy One</h1>
     <p>Coming soon</p>
   </main>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var main = document.querySelector('main');
+  var cv = document.getElementById('sky');
+  if (reduce){ main.classList.add('reveal'); return; }
+
+  var ctx = cv.getContext('2d'), dpr = Math.min(window.devicePixelRatio||1, 2);
+  var W=0, H=0;
+  function size(){
+    W = innerWidth; H = innerHeight;
+    cv.width = W*dpr; cv.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  size();
+
+  // Target points: the chevron of the logo, sampled in real screen coordinates
+  // so the constellation lands exactly where the SVG will fade in.
+  var svg = document.querySelector('.logo');
+  function targets(n){
+    var r = svg.getBoundingClientRect();
+    var s = r.width/100, ox = r.left, oy = r.top;
+    var pts = [[28,72],[50,26],[72,72]].map(function(p){ return [ox+p[0]*s, oy+p[1]*s]; });
+    var segs = [[pts[0],pts[1]],[pts[1],pts[2]]];
+    var total = segs.reduce(function(a,g){ return a+Math.hypot(g[1][0]-g[0][0], g[1][1]-g[0][1]); },0);
+    var out = [];
+    for (var i=0;i<n;i++){
+      var d = (i+0.5)/n*total, acc=0;
+      for (var k=0;k<segs.length;k++){
+        var g=segs[k], L=Math.hypot(g[1][0]-g[0][0], g[1][1]-g[0][1]);
+        if (d<=acc+L || k===segs.length-1){
+          var u=Math.min(1,(d-acc)/L);
+          out.push([g[0][0]+(g[1][0]-g[0][0])*u, g[0][1]+(g[1][1]-g[0][1])*u]);
+          break;
+        }
+        acc+=L;
+      }
+    }
+    return out;
+  }
+
+  var N = W < 640 ? 80 : 120;
+  var P = [], R = Math.min(W,H)*0.34;
+  for (var i=0;i<N;i++){
+    // random point on a sphere -> the amorphous cloud
+    var u = Math.random()*2-1, th = Math.random()*Math.PI*2, sr = Math.sqrt(1-u*u);
+    var rad = R*(0.72+Math.random()*0.45);
+    P.push({
+      x:sr*Math.cos(th)*rad, y:u*rad, z:sr*Math.sin(th)*rad,
+      d: Math.random()*0.32,                 // stagger: when this one starts gathering
+      s: 0.6+Math.random()*1.0,              // dot size
+      a: 0.22+Math.random()*0.5,             // brightness
+      tx:0, ty:0
+    });
+  }
+  var T = targets(N);
+  // shuffle target assignment so points don't sweep in as an ordered comb
+  for (var j=T.length-1;j>0;j--){ var q=(Math.random()*(j+1))|0, t=T[j]; T[j]=T[q]; T[q]=t; }
+  P.forEach(function(p,i){ p.tx=T[i][0]; p.ty=T[i][1]; });
+
+  addEventListener('resize', function(){
+    size(); R = Math.min(W,H)*0.34;
+    var T2 = targets(N);
+    P.forEach(function(p,i){ p.tx=T2[i][0]; p.ty=T2[i][1]; });
+  });
+
+  var FORM = 4200, HOLD = 500, FADE = 900;
+  var start = null, revealed = false, cx, cy;
+
+  function ease(t){ return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+
+  function frame(now){
+    if (start===null) start = now;
+    var el = now-start;
+    var t = Math.min(1, el/FORM);
+    var yaw = el*0.00045*(1-0.85*t), pit = el*0.00026*(1-0.85*t);
+    var cloud = 1-ease(t);
+    var r = svg.getBoundingClientRect();
+    var lx = r.left + r.width/2, ly = r.top + r.height/2;
+    // the cloud hangs in the middle of the screen, then drifts onto the logo as it forms
+    var et = ease(t);
+    cx = W/2 + (lx - W/2)*et; cy = H/2 + (ly - H/2)*et;
+
+    ctx.clearRect(0,0,W,H);
+
+    var pos = new Array(N), out = 1;
+    if (el > FORM+HOLD) out = Math.max(0, 1-(el-FORM-HOLD)/FADE);
+
+    for (var i=0;i<N;i++){
+      var p = P[i];
+      // rotate the cloud in 3d, project
+      var x=p.x, y=p.y, z=p.z, c, s2, X, Y, Z;
+      c=Math.cos(yaw); s2=Math.sin(yaw); X = x*c - z*s2; Z = x*s2 + z*c;
+      c=Math.cos(pit); s2=Math.sin(pit); Y = y*c - Z*s2; Z = y*s2 + Z*c;
+      var f = 620/(620+Z);
+      var px = cx + X*f, py = cy + Y*f;
+      // per-particle progress, staggered
+      var e = ease(Math.max(0, Math.min(1, (t-p.d)/(1-p.d))));
+      pos[i] = [px+(p.tx-px)*e, py+(p.ty-py)*e, f, e];
+    }
+
+    // constellation lines, only while the cloud is still loose
+    var la = cloud*0.34*out;
+    if (la > 0.02){
+      ctx.lineWidth = 0.5;
+      for (var a=0;a<N;a++){
+        for (var b=a+1;b<N;b++){
+          var dx=pos[a][0]-pos[b][0], dy=pos[a][1]-pos[b][1];
+          var d2=dx*dx+dy*dy;
+          if (d2 < 5000){
+            ctx.strokeStyle = 'rgba(200,162,74,'+(la*(1-d2/5000)*0.5).toFixed(3)+')';
+            ctx.beginPath(); ctx.moveTo(pos[a][0],pos[a][1]); ctx.lineTo(pos[b][0],pos[b][1]); ctx.stroke();
+          }
+        }
+      }
+    }
+
+    for (var m=0;m<N;m++){
+      var q = pos[m], pp = P[m];
+      var alpha = pp.a*(0.45+0.55*q[2])*out;
+      ctx.fillStyle = 'rgba(216,182,106,'+alpha.toFixed(3)+')';
+      ctx.beginPath(); ctx.arc(q[0], q[1], pp.s*(0.6+0.5*q[2]), 0, 6.2832); ctx.fill();
+    }
+
+    if (!revealed && el > FORM+HOLD){ revealed = true; main.classList.add('reveal'); }
+    if (el > FORM+HOLD+FADE){ cv.remove(); return; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
 </body>
 </html>
