@@ -3,147 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Alloy One — Eviction case processing, made visible</title>
-<meta name="description" content="Alloy One is a legal-technology platform for residential eviction processing — real-time case visibility, predictable cost, and bulk notice generation for property management companies.">
+<title>Alloy One</title>
+<meta name="description" content="Alloy One — coming soon.">
 <meta property="og:title" content="Alloy One">
-<meta property="og:description" content="Eviction case processing, made visible.">
+<meta property="og:description" content="Coming soon.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230f1115'/><path d='M28 72 50 26 72 72' stroke='%23c8a24a' stroke-width='9' fill='none' stroke-linejoin='round'/></svg>">
 <style>
-  :root{
-    --bg:#0e1013; --panel:#14171c; --line:#252a32;
-    --ink:#eef1f5; --muted:#9aa4b2; --accent:#c8a24a; --accent-soft:#3a2f16;
-    --max:64rem;
-  }
+  :root{ --bg:#0e1013; --ink:#eef1f5; --muted:#9aa4b2; --accent:#c8a24a; }
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
   body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font:400 17px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    font:400 17px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
+    display:flex; align-items:center; justify-content:center; padding:2rem;
   }
-  .wrap{max-width:var(--max); margin:0 auto; padding:0 1.5rem}
-  a{color:var(--accent); text-decoration:none}
+  main{max-width:32rem; text-align:center}
+  svg{display:block; margin:0 auto 1.75rem}
+  h1{font-size:clamp(2rem,7vw,2.75rem); letter-spacing:-.03em; font-weight:600; margin:0 0 .9rem}
+  p{color:var(--muted); margin:0 0 2rem;
+    font-size:.8rem; letter-spacing:.18em; text-transform:uppercase}
+  a{color:var(--accent); text-decoration:none; font-size:.95rem}
   a:hover{text-decoration:underline}
-
-  header{padding:2rem 0}
-  .brand{display:flex; align-items:center; gap:.7rem; font-weight:600; letter-spacing:-.01em}
-  .brand svg{display:block}
-  .brand span{font-size:1.05rem}
-
-  .hero{padding:5rem 0 4.5rem; border-bottom:1px solid var(--line)}
-  .tag{
-    display:inline-block; font-size:.75rem; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--accent); background:var(--accent-soft); border:1px solid #4a3c1d;
-    padding:.35rem .7rem; border-radius:999px; margin-bottom:1.6rem;
-  }
-  h1{
-    font-size:clamp(2.1rem,6vw,3.4rem); line-height:1.1; letter-spacing:-.03em;
-    margin:0 0 1.1rem; font-weight:600; max-width:20ch;
-  }
-  .lede{font-size:clamp(1.05rem,2.4vw,1.25rem); color:var(--muted); max-width:56ch; margin:0}
-
-  section{padding:4rem 0; border-bottom:1px solid var(--line)}
-  h2{font-size:.78rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
-     font-weight:600; margin:0 0 2rem}
-  .grid{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden}
-  @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
-  .card{background:var(--panel); padding:1.6rem}
-  .card h3{margin:0 0 .5rem; font-size:1.05rem; font-weight:600; letter-spacing:-.01em}
-  .card p{margin:0; color:var(--muted); font-size:.97rem}
-
-  .two{display:grid; gap:2.5rem}
-  @media(min-width:720px){.two{grid-template-columns:1fr 1fr}}
-  .two h3{margin:0 0 .5rem; font-size:1.05rem; font-weight:600}
-  .two p{margin:0; color:var(--muted); font-size:.97rem}
-
-  .contact p{max-width:52ch; color:var(--muted); margin:0 0 1.5rem}
-  .btn{
-    display:inline-block; border:1px solid var(--accent); color:var(--accent);
-    padding:.7rem 1.3rem; border-radius:8px; font-size:.95rem; font-weight:500;
-  }
-  .btn:hover{background:var(--accent); color:#0e1013; text-decoration:none}
-
-  footer{padding:2.5rem 0 4rem; color:var(--muted); font-size:.85rem;
-         display:flex; flex-wrap:wrap; gap:.75rem; justify-content:space-between}
 </style>
 </head>
 <body>
-
-<div class="wrap">
-
-  <header>
-    <div class="brand">
-      <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden="true">
-        <rect width="100" height="100" rx="20" fill="#14171c" stroke="#252a32"/>
-        <path d="M28 72 50 26 72 72" stroke="#c8a24a" stroke-width="9" fill="none" stroke-linejoin="round"/>
-      </svg>
-      <span>Alloy One</span>
-    </div>
-  </header>
-
-  <div class="hero">
-    <span class="tag">Coming soon</span>
-    <h1>Eviction case processing, made visible.</h1>
-    <p class="lede">
-      Alloy One pairs eviction counsel with software built for the work — so property
-      management companies can see where every case stands, what it will cost, and what
-      needs to happen next.
-    </p>
-  </div>
-
-  <section>
-    <h2>What we're building</h2>
-    <div class="grid">
-      <div class="card">
-        <h3>Case visibility</h3>
-        <p>A real-time view of where each case sits in the legal process — instead of emailing the firm and waiting.</p>
-      </div>
-      <div class="card">
-        <h3>Predictable cost</h3>
-        <p>Flat-fee legal work with cost-to-date, forecast resolution, and a confidence rating that tightens as a case moves.</p>
-      </div>
-      <div class="card">
-        <h3>Bulk notice generation</h3>
-        <p>Statutory notices drafted from delinquency data, with amounts auto-totaled — the math errors that get cases thrown out, removed.</p>
-      </div>
-      <div class="card">
-        <h3>Action prompts</h3>
-        <p>The platform says when you need to act to keep a case moving, and tells the firm side what each case needs next.</p>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <h2>How it works</h2>
-    <div class="two">
-      <div>
-        <h3>One platform, both sides</h3>
-        <p>Property managers create notices, submit intakes, and track progress. Attorneys and paralegals
-        receive intakes, assemble and file documents, coordinate service, and move cases to resolution —
-        with a deliberate line between what's shared and what stays firm-internal.</p>
-      </div>
-      <div>
-        <h3>Built for the jurisdiction</h3>
-        <p>Deadlines, notice periods, service rules, and documents differ by state and county as a matter of
-        statute. Alloy One treats that as law, not localization. Launching in Washington State,
-        with additional states to follow.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="contact">
-    <h2>Get in touch</h2>
-    <p>We're working with a small number of property management companies ahead of launch.
-       If eviction spend and case visibility are on your list, we'd like to hear from you.</p>
-    <a class="btn" href="mailto:ian@intersectionx.co?subject=Alloy%20One">Email us</a>
-  </section>
-
-  <footer>
-    <span>&copy; 2026 Alloy One</span>
-    <span>Alloy One provides technology and administrative services. Legal services are provided by independent law firms.</span>
-  </footer>
-
-</div>
+  <main>
+    <svg width="52" height="52" viewBox="0 0 100 100" aria-hidden="true">
+      <rect width="100" height="100" rx="20" fill="#14171c" stroke="#252a32"/>
+      <path d="M28 72 50 26 72 72" stroke="#c8a24a" stroke-width="9" fill="none" stroke-linejoin="round"/>
+    </svg>
+    <h1>Alloy One</h1>
+    <p>Coming soon</p>
+    <a href="mailto:ian@intersectionx.co?subject=Alloy%20One">ian@intersectionx.co</a>
+  </main>
 </body>
 </html>
